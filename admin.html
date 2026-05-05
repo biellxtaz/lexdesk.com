@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexDesk — Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#C9A84C;--gold-dark:#9A7A30;--gold-glow:rgba(201,168,76,0.12);
+  --navy:#0D1B2A;--navy-mid:#1A2E42;--navy-light:#243B52;
+  --text-light:#F0EDE6;--text-muted:#8A95A0;
+  --success:#27AE60;--danger:#E74C3C;--warning:#F39C12;--info:#3498DB;
+  --border:rgba(255,255,255,0.07);--border-gold:rgba(201,168,76,0.25);
+  --radius:10px;--radius-lg:16px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text-light)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(201,168,76,0.2);border-radius:4px}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy),#060F18)}
+.login-card{background:rgba(255,255,255,0.03);border:1px solid var(--border-gold);border-radius:var(--radius-lg);padding:44px 40px;width:400px}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px}
+.login-logo-name{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)}
+.login-logo-sub{font-size:11px;color:var(--text-muted);letter-spacing:3px;text-transform:uppercase;margin-top:4px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px}
+.form-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border-gold);border-radius:var(--radius);padding:12px 15px;color:var(--text-light);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s}
+.form-input:focus{border-color:var(--gold);background:rgba(201,168,76,0.07)}
+.form-input::placeholder{color:rgba(138,149,160,0.5)}
+.error-box{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--danger);margin-bottom:14px;display:none}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:var(--radius);padding:10px 18px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-full{width:100%}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--navy)}
+.btn-gold:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,0.3)}
+.btn-success{background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.35);color:var(--success)}
+.btn-success:hover{background:rgba(39,174,96,0.25)}
+.btn-danger{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.35);color:var(--danger)}
+.btn-danger:hover{background:rgba(231,76,60,0.25)}
+.btn-ghost{background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text-muted)}
+.btn-ghost:hover{border-color:var(--border-gold);color:var(--text-light)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.loader{display:inline-block;width:14px;height:14px;border:2px solid rgba(201,168,76,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-success{background:rgba(39,174,96,0.15);color:var(--success)}
+.badge-warning{background:rgba(243,156,18,0.15);color:var(--warning)}
+.badge-danger{background:rgba(231,76,60,0.15);color:var(--danger)}
+.badge-muted{background:rgba(255,255,255,0.08);color:var(--text-muted)}
+.badge-gold{background:rgba(201,168,76,0.15);color:var(--gold)}
+.badge-info{background:rgba(52,152,219,0.15);color:var(--info)}
+
+/* ── LAYOUT ── */
+#app{display:none;height:100vh;flex-direction:column}
+#app.visible{display:flex}
+.topbar{background:rgba(9,18,28,0.98);border-bottom:1px solid var(--border);height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.topbar-name{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold)}
+.admin-chip{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--danger);font-weight:600;letter-spacing:.5px}
+.topbar-user{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted)}
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:210px;background:rgba(8,16,26,0.7);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);position:relative;transition:all .2s;user-select:none}
+.nav-item:hover{color:var(--text-light);background:rgba(255,255,255,0.03)}
+.nav-item.active{color:var(--gold);background:rgba(201,168,76,0.07)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--gold);border-radius:0 3px 3px 0}
+.nav-icon{font-size:15px;width:20px;text-align:center}
+.nav-badge{background:var(--danger);color:white;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto;font-weight:700}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:28px}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:4px}
+.page-subtitle{font-size:13px;color:var(--text-muted);margin-bottom:26px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.stat-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px}
+.stat-icon{font-size:22px;margin-bottom:10px}
+.stat-value{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;margin-bottom:3px}
+.stat-label{font-size:12px;color:var(--text-muted)}
+
+/* ── TABLE ── */
+.card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:600;color:var(--text-light)}
+.card-subtitle{font-size:12px;color:var(--text-muted)}
+table{width:100%;border-collapse:collapse}
+thead th{background:rgba(255,255,255,0.03);padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+tbody td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);vertical-align:middle}
+tbody td:first-child{color:var(--text-light);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,0.025)}
+.td-actions{display:flex;gap:6px;align-items:center}
+.empty-row td{text-align:center;padding:36px;color:var(--text-muted);font-size:13px}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--navy-mid);border:1px solid var(--border-gold);border-radius:var(--radius-lg);padding:30px;width:440px;max-width:95vw;animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:'Playfair Display',serif;font-size:19px}
+.modal-close{background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:7px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:18px;transition:all .2s}
+.modal-close:hover{border-color:var(--border-gold)}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--navy-light);border:1px solid var(--border-gold);border-radius:var(--radius);padding:12px 18px;font-size:13px;color:var(--text-light);transform:translateX(120%);transition:transform .3s ease;display:flex;align-items:center;gap:10px;max-width:320px}
+.toast.show{transform:translateX(0)}
+.toast.toast-success{border-color:rgba(39,174,96,.4)}
+.toast.toast-error{border-color:rgba(231,76,60,.4)}
+
+/* ── PLAN INFO ── */
+.plan-detail{background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);padding:14px 18px;margin-bottom:18px}
+.plan-detail-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px}
+.plan-detail-row:last-child{margin-bottom:0}
+.plan-detail-label{color:var(--text-muted)}
+.plan-detail-value{color:var(--text-light);font-weight:600}
+
+/* ── SEARCH ── */
+.toolbar{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.search-input{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;color:var(--text-light);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s}
+.search-input:focus{border-color:rgba(201,168,76,.4)}
+.search-input::placeholder{color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN ADMIN -->
+<div id="loginWrap" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">⚖</div>
+      <div class="login-logo-name">LexDesk</div>
+      <div class="login-logo-sub">Painel Administrativo</div>
+    </div>
+    <div id="loginError" class="error-box"></div>
+    <div class="form-group">
+      <label class="form-label">E-mail admin</label>
+      <input type="email" class="form-input" id="adminEmail" placeholder="admin@lexdesk.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha</label>
+      <input type="password" class="form-input" id="adminPass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doAdminLogin()">
+    </div>
+    <button class="btn btn-gold btn-full" id="btnAdminLogin" onclick="doAdminLogin()">
+      <span id="loginBtnTxt">Entrar como admin</span>
+    </button>
+    <div style="text-align:center;margin-top:16px">
+      <a href="/" style="font-size:12px;color:var(--text-muted);text-decoration:none">← Voltar ao LexDesk</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-icon">⚖</div>
+      <div class="topbar-name">LexDesk</div>
+      <div class="admin-chip">ADMIN</div>
+    </div>
+    <div class="topbar-user">
+      <span id="adminNameTop">—</span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-item active" data-page="dashboard" onclick="navTo('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="pendentes" onclick="navTo('pendentes')">
+        <span class="nav-icon">⏳</span> Pagamentos
+        <span class="nav-badge" id="navBadgePendentes" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-page="usuarios" onclick="navTo('usuarios')">
+        <span class="nav-icon">👥</span> Usuários
+      </div>
+      <div class="nav-item" data-page="cupons" onclick="navTo('cupons')">
+        <span class="nav-icon">🎟</span> Cupons
+      </div>
+      <div style="position:absolute;bottom:20px;left:0;right:0;padding:0 18px">
+        <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()">🚪 Sair</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle">Visão geral da plataforma</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="statUsuarios">—</div>
+            <div class="stat-label">Usuários ativos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="statAtivas">—</div>
+            <div class="stat-label">Assinaturas ativas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="color:var(--warning)">⏳</div>
+            <div class="stat-value text-warning" id="statPendentes">—</div>
+            <div class="stat-label">Pagamentos pendentes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value text-gold" id="statReceita">—</div>
+            <div class="stat-label">Receita total</div>
+          </div>
+        </div>
+        <!-- Atalho para pendentes -->
+        <div id="alertaPendentes" style="display:none;background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:var(--radius-lg);padding:18px 22px;display:none;align-items:center;gap:16px">
+          <span style="font-size:28px">⏳</span>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--warning);margin-bottom:3px">Pagamentos aguardando confirmação</div>
+            <div style="font-size:13px;color:var(--text-muted)">Verifique os pagamentos pendentes e ative os planos dos advogados.</div>
+          </div>
+          <button class="btn btn-gold" style="margin-left:auto" onclick="navTo('pendentes')">Ver pendentes →</button>
+        </div>
+      </div>
+
+      <!-- ── PAGAMENTOS PENDENTES ── -->
+      <div class="page" id="page-pendentes">
+        <div class="page-title">Pagamentos Pendentes</div>
+        <div class="page-subtitle">Confirme ou rejeite pagamentos após verificar no app do banco</div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Aguardando confirmação</div>
+              <div class="card-subtitle">Verifique o PIX no Santander e confirme abaixo</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="loadPendentes()">🔄 Atualizar</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Advogado</th>
+                <th>E-mail</th>
+                <th>OAB</th>
+                <th>Plano</th>
+                <th>Valor</th>
+                <th>Solicitado em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="pendentesBody">
+              <tr><td colspan="7" style="text-align:center;padding:32px"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── USUÁRIOS ── -->
+      <div class="page" id="page-usuarios">
+        <div class="page-title">Usuários</div>
+        <div class="page-subtitle">Todos os advogados cadastrados na plataforma</div>
+        <div class="card">
+          <div class="toolbar">
+            <input type="text" class="search-input" id="userSearch" placeholder="🔍  Buscar por nome, e-mail ou OAB..." oninput="filterUsuarios()">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>OAB</th>
+                <th>Plano</th>
+                <th>Status</th>
+                <th>Cadastro</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="usuariosBody">
+              <tr><td colspan="7" style="text-align:center;padding:32px"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── CUPONS ── -->
+      <div class="page" id="page-cupons">
+        <div class="page-title">Cupons Promocionais</div>
+        <div class="page-subtitle">Gerencie os códigos de desconto da plataforma</div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <div class="card-title">Novo cupom</div>
+          </div>
+          <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 120px 140px auto;gap:10px;align-items:end">
+            <div>
+              <label class="form-label">Código</label>
+              <input type="text" class="form-input" id="novoCupomCodigo" placeholder="Ex: PROMO2026"
+                oninput="this.value=this.value.toUpperCase()" style="text-transform:uppercase;letter-spacing:2px;font-weight:600">
+            </div>
+            <div>
+              <label class="form-label">Desconto %</label>
+              <input type="number" class="form-input" id="novoCupomDesconto" value="30" min="1" max="100">
+            </div>
+            <div>
+              <label class="form-label">Limite de usos</label>
+              <input type="number" class="form-input" id="novoCupomLimite" placeholder="Ilimitado" min="1">
+            </div>
+            <button class="btn btn-gold" onclick="criarCupom()" style="height:42px">+ Criar cupom</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Cupons ativos</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadCupons()">🔄 Atualizar</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Desconto</th>
+                <th>Usos</th>
+                <th>Limite</th>
+                <th>Status</th>
+                <th>Criado em</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cuponsBody">
+              <tr><td colspan="7" style="text-align:center;padding:32px"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- MODAL: CONFIRMAR PAGAMENTO -->
+<div class="modal-overlay" id="modalConfirmar">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Confirmar pagamento</div>
+      <div class="modal-close" onclick="closeModal('modalConfirmar')">×</div>
+    </div>
+    <div class="plan-detail" id="confirmDetail"></div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;line-height:1.7">
+      Ao confirmar, o plano será ativado imediatamente e o advogado receberá um <strong style="color:var(--gold)">e-mail de confirmação</strong> com os detalhes do acesso.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modalConfirmar')">Cancelar</button>
+      <button class="btn btn-success" id="btnConfirmarOk" onclick="executarConfirmar()">
+        <span id="btnConfirmarTxt">✅ Confirmar e ativar plano</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REJEITAR PAGAMENTO -->
+<div class="modal-overlay" id="modalRejeitar">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Rejeitar pagamento</div>
+      <div class="modal-close" onclick="closeModal('modalRejeitar')">×</div>
+    </div>
+    <div class="plan-detail" id="rejeitarDetail"></div>
+    <div class="form-group">
+      <label class="form-label">Motivo (opcional — será enviado ao advogado)</label>
+      <textarea class="form-input" id="motivoRejeicao" placeholder="Ex: PIX não identificado na conta. Por favor, tente novamente." style="resize:vertical;min-height:80px"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modalRejeitar')">Cancelar</button>
+      <button class="btn btn-danger" id="btnRejeitarOk" onclick="executarRejeitar()">
+        <span id="btnRejeitarTxt">❌ Rejeitar pagamento</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const API = '';
+let TOKEN = localStorage.getItem('lexdesk_admin_token') || '';
+let allUsuarios = [];
+let pendingAssId = null;
+
+// ── API HELPER ────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}) }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.erro || data.message || 'Erro ' + res.status);
+  return data;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span>${icons[type]||'•'}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 3500);
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+});
+
+// ── LOGIN ─────────────────────────────────────────────────────────
+async function doAdminLogin() {
+  const btn = document.getElementById('btnAdminLogin');
+  const txt = document.getElementById('loginBtnTxt');
+  const err = document.getElementById('loginError');
+  const email = document.getElementById('adminEmail').value.trim();
+  const pass  = document.getElementById('adminPass').value;
+  err.style.display = 'none';
+  if (!email || !pass) { err.textContent = 'Preencha e-mail e senha.'; err.style.display = 'block'; return; }
+  btn.disabled = true; txt.innerHTML = '<div class="loader"></div>';
+  try {
+    const data = await api('POST', '/api/auth/login', { email, senha: pass });
+    const user = data.usuario || data.user || {};
+    if (user.cargo !== 'admin') throw new Error('Acesso negado. Esta conta não é administradora.');
+    TOKEN = data.token || data.access_token;
+    localStorage.setItem('lexdesk_admin_token', TOKEN);
+    document.getElementById('adminNameTop').textContent = user.nome || email;
+    showApp();
+  } catch(e) {
+    err.textContent = e.message || 'Credenciais inválidas.';
+    err.style.display = 'block';
+  } finally { btn.disabled = false; txt.textContent = 'Entrar como admin'; }
+}
+
+function doLogout() {
+  TOKEN = '';
+  localStorage.removeItem('lexdesk_admin_token');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  navTo('dashboard');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────
+function navTo(page) {
+  document.querySelectorAll('.nav-item[data-page]').forEach(n =>
+    n.classList.toggle('active', n.dataset.page === page));
+  document.querySelectorAll('.page').forEach(p =>
+    p.classList.toggle('active', p.id === 'page-' + page));
+  if (page === 'dashboard')  loadDashboard();
+  if (page === 'pendentes')  loadPendentes();
+  if (page === 'usuarios')   loadUsuarios();
+  if (page === 'cupons')     loadCupons();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const d = await api('GET', '/api/admin/dashboard');
+    document.getElementById('statUsuarios').textContent  = d.total_usuarios ?? '—';
+    document.getElementById('statAtivas').textContent    = d.assinaturas_ativas ?? '—';
+    document.getElementById('statPendentes').textContent = d.pagamentos_pendentes ?? '—';
+    document.getElementById('statReceita').textContent   = fmtMoney(d.receita_total);
+    const alerta = document.getElementById('alertaPendentes');
+    if (d.pagamentos_pendentes > 0) {
+      alerta.style.display = 'flex';
+      const nb = document.getElementById('navBadgePendentes');
+      nb.textContent = d.pagamentos_pendentes;
+      nb.style.display = 'inline';
+    } else {
+      alerta.style.display = 'none';
+    }
+  } catch(e) { showToast('Erro ao carregar dashboard: ' + e.message, 'error'); }
+}
+
+// ── PENDENTES ─────────────────────────────────────────────────────
+async function loadPendentes() {
+  const tbody = document.getElementById('pendentesBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px"><div class="loader"></div></td></tr>';
+  try {
+    const data = await api('GET', '/api/admin/pendentes');
+    const nb = document.getElementById('navBadgePendentes');
+    nb.textContent = data.length;
+    nb.style.display = data.length ? 'inline' : 'none';
+    if (!data.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">🎉 Nenhum pagamento pendente</td></tr>`;
+      return;
+    }
+    const valores = { mensal:'R$ 79,99', trimestral:'R$ 200,00', anual:'R$ 850,00', vitalicio:'R$ 2.000,00' };
+    tbody.innerHTML = data.map(p => `
+      <tr>
+        <td>
+          <div style="font-weight:600">${p.usuario_nome || '—'}</div>
+        </td>
+        <td>${p.usuario_email || '—'}</td>
+        <td><span style="font-size:12px;color:var(--text-muted)">${p.usuario_oab || '—'}</span></td>
+        <td>
+          <span class="badge badge-gold">${planLabel(p.tipo)}</span>
+        </td>
+        <td style="font-weight:600;color:var(--gold)">${valores[p.tipo] || '—'}</td>
+        <td style="font-size:12px">${fmtDatetime(p.criado_em)}</td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-success btn-sm" onclick="abrirConfirmar(${p.id}, '${p.usuario_nome}', '${p.usuario_email}', '${p.tipo}')">
+              ✅ Confirmar
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="abrirRejeitar(${p.id}, '${p.usuario_nome}', '${p.usuario_email}', '${p.tipo}')">
+              ❌ Rejeitar
+            </button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(e) { showToast('Erro: ' + e.message, 'error'); tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Erro ao carregar</td></tr>`; }
+}
+
+// ── CONFIRMAR ─────────────────────────────────────────────────────
+function abrirConfirmar(id, nome, email, tipo) {
+  pendingAssId = id;
+  const valores = { mensal:'R$ 79,99 / mês', trimestral:'R$ 200,00 / 3 meses', anual:'R$ 850,00 / 12 meses', vitalicio:'R$ 2.000,00 (vitalício)' };
+  document.getElementById('confirmDetail').innerHTML = `
+    <div class="plan-detail-row"><span class="plan-detail-label">Advogado</span><span class="plan-detail-value">${nome}</span></div>
+    <div class="plan-detail-row"><span class="plan-detail-label">E-mail</span><span class="plan-detail-value">${email}</span></div>
+    <div class="plan-detail-row"><span class="plan-detail-label">Plano</span><span class="plan-detail-value">${planLabel(tipo)}</span></div>
+    <div class="plan-detail-row"><span class="plan-detail-label">Valor</span><span class="plan-detail-value" style="color:var(--gold)">${valores[tipo]||'—'}</span></div>`;
+  openModal('modalConfirmar');
+}
+
+async function executarConfirmar() {
+  const btn = document.getElementById('btnConfirmarOk');
+  const txt = document.getElementById('btnConfirmarTxt');
+  btn.disabled = true; txt.innerHTML = '<div class="loader"></div> Ativando...';
+  try {
+    await api('POST', `/api/admin/confirmar/${pendingAssId}`);
+    showToast('Plano ativado! E-mail enviado ao advogado ✅', 'success');
+    closeModal('modalConfirmar');
+    loadPendentes();
+    loadDashboard();
+  } catch(e) { showToast('Erro: ' + e.message, 'error'); }
+  finally { btn.disabled = false; txt.textContent = '✅ Confirmar e ativar plano'; }
+}
+
+// ── REJEITAR ──────────────────────────────────────────────────────
+function abrirRejeitar(id, nome, email, tipo) {
+  pendingAssId = id;
+  document.getElementById('motivoRejeicao').value = '';
+  document.getElementById('rejeitarDetail').innerHTML = `
+    <div class="plan-detail-row"><span class="plan-detail-label">Advogado</span><span class="plan-detail-value">${nome}</span></div>
+    <div class="plan-detail-row"><span class="plan-detail-label">E-mail</span><span class="plan-detail-value">${email}</span></div>
+    <div class="plan-detail-row"><span class="plan-detail-label">Plano solicitado</span><span class="plan-detail-value">${planLabel(tipo)}</span></div>`;
+  openModal('modalRejeitar');
+}
+
+async function executarRejeitar() {
+  const btn = document.getElementById('btnRejeitarOk');
+  const txt = document.getElementById('btnRejeitarTxt');
+  const motivo = document.getElementById('motivoRejeicao').value.trim();
+  btn.disabled = true; txt.innerHTML = '<div class="loader"></div>';
+  try {
+    await api('POST', `/api/admin/rejeitar/${pendingAssId}`, { motivo });
+    showToast('Pagamento rejeitado. Advogado notificado por e-mail.', 'warning');
+    closeModal('modalRejeitar');
+    loadPendentes();
+    loadDashboard();
+  } catch(e) { showToast('Erro: ' + e.message, 'error'); }
+  finally { btn.disabled = false; txt.textContent = '❌ Rejeitar pagamento'; }
+}
+
+// ── USUÁRIOS ──────────────────────────────────────────────────────
+async function loadUsuarios() {
+  const tbody = document.getElementById('usuariosBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px"><div class="loader"></div></td></tr>';
+  try {
+    allUsuarios = await api('GET', '/api/admin/usuarios');
+    renderUsuarios(allUsuarios);
+  } catch(e) { showToast('Erro: ' + e.message, 'error'); }
+}
+
+function renderUsuarios(list) {
+  const tbody = document.getElementById('usuariosBody');
+  if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Nenhum usuário encontrado</td></tr>`; return; }
+  tbody.innerHTML = list.map(u => `
+    <tr>
+      <td>
+        <div style="font-weight:600">${u.nome || '—'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${u.cargo || 'advogado'}</div>
+      </td>
+      <td>${u.email || '—'}</td>
+      <td>${u.oab || '—'}</td>
+      <td>
+        ${u.plano
+          ? `<span class="badge badge-gold">${planLabel(u.plano)}</span>`
+          : `<span class="badge badge-muted">Sem plano</span>`}
+      </td>
+      <td>
+        ${u.ass_status === 'ativa'
+          ? `<span class="badge badge-success">Ativo</span>`
+          : u.ass_status === 'pendente'
+          ? `<span class="badge badge-warning">Pendente</span>`
+          : `<span class="badge badge-muted">Sem assinatura</span>`}
+      </td>
+      <td style="font-size:12px">${fmtDate(u.criado_em)}</td>
+      <td>
+        ${u.ativo
+          ? `<button class="btn btn-danger btn-sm" onclick="desativarUsuario(${u.id}, '${u.nome}')">Desativar</button>`
+          : `<span class="badge badge-danger">Desativado</span>`}
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsuarios() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  renderUsuarios(allUsuarios.filter(u => JSON.stringify(u).toLowerCase().includes(q)));
+}
+
+async function desativarUsuario(id, nome) {
+  if (!confirm(`Desativar a conta de ${nome}?`)) return;
+  try {
+    await api('DELETE', `/api/admin/usuarios/${id}`);
+    showToast('Usuário desativado.', 'warning');
+    loadUsuarios();
+  } catch(e) { showToast('Erro: ' + e.message, 'error'); }
+}
+
+// ── CUPONS ───────────────────────────────────────────────────────
+async function loadCupons() {
+  const tbody = document.getElementById('cuponsBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px"><div class="loader"></div></td></tr>';
+  try {
+    const data = await api('GET', '/api/cupons');
+    if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum cupom cadastrado</td></tr>'; return; }
+    tbody.innerHTML = data.map(c => `
+      <tr>
+        <td style="font-family:monospace;font-size:15px;font-weight:700;letter-spacing:2px;color:var(--gold)">${c.codigo}</td>
+        <td><span class="badge badge-success">${c.desconto_pct}% OFF</span></td>
+        <td style="font-weight:600">${c.usos_realizados}</td>
+        <td>${c.limite_usos ?? '∞ Ilimitado'}</td>
+        <td>${c.ativo
+          ? '<span class="badge badge-success">Ativo</span>'
+          : '<span class="badge badge-muted">Inativo</span>'}</td>
+        <td style="font-size:12px">${fmtDate(c.criado_em)}</td>
+        <td><div class="td-actions">
+          <button class="btn btn-sm ${c.ativo ? 'btn-danger' : 'btn-success'}"
+            onclick="toggleCupom(${c.id}, ${!c.ativo}, ${c.limite_usos??'null'})">
+            ${c.ativo ? '⏸ Desativar' : '▶ Ativar'}
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deletarCupom(${c.id}, '${c.codigo}')">🗑</button>
+        </div></td>
+      </tr>`).join('');
+  } catch(e) { showToast('Erro: ' + e.message, 'error'); }
+}
+
+async function criarCupom() {
+  const codigo    = document.getElementById('novoCupomCodigo').value.trim();
+  const desconto  = parseInt(document.getElementById('novoCupomDesconto').value);
+  const limite    = document.getElementById('novoCupomLimite').value;
+  if (!codigo)          { showToast('Informe o código do cupom','warning'); return; }
+  if (!desconto || desconto < 1 || desconto > 100) { showToast('Desconto deve ser entre 1% e 100%','warning'); return; }
+  try {
+    await api('POST', '/api/cupons', {
+      codigo,
+      desconto_pct: desconto,
+      limite_usos: limite ? parseInt(limite) : null
+    });
+    showToast('Cupom criado! 🎟', 'success');
+    document.getElementById('novoCupomCodigo').value = '';
+    document.getElementById('novoCupomLimite').value = '';
+    loadCupons();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function toggleCupom(id, novoAtivo, limite) {
+  try {
+    await api('PUT', `/api/cupons/${id}`, { ativo: novoAtivo, limite_usos: limite });
+    showToast(novoAtivo ? 'Cupom ativado!' : 'Cupom desativado!', novoAtivo ? 'success' : 'warning');
+    loadCupons();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deletarCupom(id, codigo) {
+  if (!confirm(`Deletar o cupom "${codigo}"?`)) return;
+  try {
+    await api('DELETE', `/api/cupons/${id}`);
+    showToast('Cupom removido!', 'warning');
+    loadCupons();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function planLabel(tipo) {
+  return { mensal:'Mensal', trimestral:'Trimestral', anual:'Anual', vitalicio:'Vitalício' }[tipo] || tipo || '—';
+}
+function fmtMoney(v) {
+  if (!v && v !== 0) return '—';
+  return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+}
+function fmtDate(v) {
+  if (!v) return '—';
+  return new Date(v).toLocaleDateString('pt-BR');
+}
+function fmtDatetime(v) {
+  if (!v) return '—';
+  return new Date(v).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+(async function init() {
+  if (TOKEN) {
+    try {
+      // Testa se token admin ainda é válido
+      const data = await api('GET', '/api/auth/me');
+      if (data.cargo !== 'admin') throw new Error('not admin');
+      document.getElementById('adminNameTop').textContent = data.nome || 'Admin';
+      showApp();
+    } catch { doLogout(); }
+  }
+})();
+</script>
+</body>
+</html>
